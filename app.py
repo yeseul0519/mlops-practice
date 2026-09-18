@@ -45,3 +45,7 @@ def predict(data: IrisInput):
     return {
         "prediction": int(prediction[0])
     }
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
