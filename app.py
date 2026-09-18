@@ -1,6 +1,10 @@
 import mlflow.sklearn
 from fastapi import FastAPI
 from pydantic import BaseModel
+import time
+
+from prometheus_client import Counter, Histogram, generate_latest
+from fastapi.responses import Response
 
 
 MODEL_URI = "./deployment_model"
@@ -8,6 +12,16 @@ MODEL_URI = "./deployment_model"
 app = FastAPI(
     title="Iris Classifier API",
     version="1.0"
+)
+
+PREDICTION_COUNT = Counter(
+    "prediction_requests_total",
+    "Total number of prediction requests"
+)
+
+PREDICTION_LATENCY = Histogram(
+    "prediction_latency_seconds",
+    "Prediction request latency in seconds"
 )
 
 
@@ -32,6 +46,9 @@ def root():
 
 @app.post("/predict")
 def predict(data: IrisInput):
+    start_time = time.time()
+
+    PREDICTION_COUNT.inc()
 
     features = [[
         data.sepal_length,
@@ -42,10 +59,20 @@ def predict(data: IrisInput):
 
     prediction = model.predict(features)
 
-    return {
-        "prediction": int(prediction[0])
-    }
+    latency = time.time() - start_time
+    PREDICTION_LATENCY.observe(latency)
+
+    return {"prediction": int(prediction[0])}
 
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(
+        content=generate_latest(),
+        media_type="text/plain"
+    )

@@ -3,3 +3,4 @@ uvicorn
 mlflow==3.16.1
 scikit-learn
 skops
+prometheus-client
