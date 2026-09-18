@@ -58,6 +58,7 @@ jobs:
         docker tag iris-api:test ghcr.io/yeseul0519/mlops-practice:latest
         docker tag iris-api:test ghcr.io/yeseul0519/mlops-practice:${{ github.sha }}
 
+
     - name: Push Docker image
       if: github.event_name == 'push'
       run: |
