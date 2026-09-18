@@ -1,4 +1,4 @@
-name: MLOps CI
+name: MLOps CI/CD
 
 on:
   push:
@@ -6,8 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  docker-test:
+  build-test-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,3 +43,21 @@ jobs:
       - name: Show container logs on failure
         if: failure()
         run: docker logs iris-api-test
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build production Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker build -t ghcr.io/yeseul0519/mlops-practice:latest .
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker push ghcr.io/yeseul0519/mlops-practice:latest
