@@ -52,12 +52,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build production Docker image
-        if: github.event_name == 'push'
-        run: |
-          docker build -t ghcr.io/yeseul0519/mlops-practice:latest .
+      - name: Tag Docker image
+      if: github.event_name == 'push'
+      run: |
+        docker tag iris-api:test ghcr.io/yeseul0519/mlops-practice:latest
+        docker tag iris-api:test ghcr.io/yeseul0519/mlops-practice:${{ github.sha }}
 
-      - name: Push Docker image
-        if: github.event_name == 'push'
-        run: |
-          docker push ghcr.io/yeseul0519/mlops-practice:latest
+    - name: Push Docker image
+      if: github.event_name == 'push'
+      run: |
+        docker push ghcr.io/yeseul0519/mlops-practice:latest
+        docker push ghcr.io/yeseul0519/mlops-practice:${{ github.sha }}
