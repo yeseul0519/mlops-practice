@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  docker-build:
+  docker-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,3 +16,26 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t iris-api:test .
+
+      - name: Run Docker container
+        run: docker run -d --name iris-api-test -p 8000:8000 iris-api:test
+
+      - name: Wait for API
+        run: |
+          for i in {1..30}; do
+            if curl -f http://127.0.0.1:8000/; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs iris-api-test
+          exit 1
+
+      - name: Test prediction API
+        run: |
+          python -m pip install requests
+          python test_api.py
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs iris-api-test
