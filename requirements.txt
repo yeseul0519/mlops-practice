@@ -1,0 +1,5 @@
+fastapi==0.141.1
+uvicorn
+mlflow==3.16.1
+scikit-learn
+skops
